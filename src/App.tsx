@@ -1,11 +1,28 @@
-
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from 'next-themes'
+import Layout from './components/Layout'
+import Dashboard from './pages/Dashboard'
+import Transactions from './pages/Transactions'
+import Categories from './pages/Categories'
+import Analytics from './pages/Analytics'
+import Profile from './pages/Profile'
 
 function App() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center">
-      <h1 className="text-4xl font-bold">Lasy App</h1>
-    </div>
-  );
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <BrowserRouter>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/transactions" element={<Transactions />} />
+            <Route path="/categories" element={<Categories />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/profile" element={<Profile />} />
+          </Routes>
+        </Layout>
+      </BrowserRouter>
+    </ThemeProvider>
+  )
 }
 
-export default App;
+export default App
