@@ -21,7 +21,7 @@ export default function Transactions() {
   const [newDescription, setNewDescription] = useState('')
   const [newAmount, setNewAmount] = useState('')
   const [newType, setNewType] = useState<'income' | 'expense'>('expense')
-  const [newCategoryId, setNewCategoryId] = useState('')
+  const [newCategoryId, setNewCategoryId] = useState<string>('')
   const [newDate, setNewDate] = useState(new Date().toISOString().split('T')[0])
 
   const handleCreateTransaction = async (e: React.FormEvent) => {
@@ -127,12 +127,11 @@ export default function Transactions() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Categoria</Label>
-                  <Select value={newCategoryId} onValueChange={setNewCategoryId}>
+                  <Select value={newCategoryId || undefined} onValueChange={setNewCategoryId}>
                     <SelectTrigger id="category">
-                      <SelectValue placeholder="Selecione" />
+                      <SelectValue placeholder="Sem categoria" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Sem categoria</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
