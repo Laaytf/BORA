@@ -28,6 +28,7 @@ export interface Database {
           email?: string
           created_at?: string
         }
+        Relationships: []
       }
       categories: {
         Row: {
@@ -54,6 +55,14 @@ export interface Database {
           budget?: number
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "categories_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       transactions: {
         Row: {
@@ -86,7 +95,25 @@ export interface Database {
           date?: string
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
+    Views: {}
+    Functions: {}
+    Enums: {}
+    CompositeTypes: {}
   }
 }
