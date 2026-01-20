@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { TrendingUp, TrendingDown, Wallet, CreditCard, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
@@ -6,6 +8,8 @@ import { useCategories } from '@/hooks/use-categories'
 export default function Dashboard() {
   const { transactions, loading: transactionsLoading } = useTransactions()
   const { categories } = useCategories()
+  const [showAllTransactions, setShowAllTransactions] = useState(false)
+  const [showAllCategories, setShowAllCategories] = useState(false)
 
   // Calcular totais
   const totalIncome = transactions
@@ -18,11 +22,14 @@ export default function Dashboard() {
 
   const balance = totalIncome - totalExpense
 
-  // Pegar transações recentes (últimas 5)
-  const recentTransactions = transactions.slice(0, 5)
+  // Pegar transações recentes
+  const allRecentTransactions = transactions
+  const recentTransactions = showAllTransactions
+    ? allRecentTransactions
+    : allRecentTransactions.slice(0, 4)
 
   // Calcular gastos por categoria
-  const categorySpending = categories
+  const allCategorySpending = categories
     .map((category) => {
       const amount = transactions
         .filter((t) => t.category_id === category.id && t.type === 'expense')
@@ -35,7 +42,10 @@ export default function Dashboard() {
     })
     .filter((cat) => cat.amount > 0)
     .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5)
+
+  const categorySpending = showAllCategories
+    ? allCategorySpending
+    : allCategorySpending.slice(0, 4)
 
   const totalCategorySpending = categorySpending.reduce((sum, cat) => sum + cat.amount, 0)
 
@@ -77,7 +87,7 @@ export default function Dashboard() {
     {
       title: 'Categorias',
       value: `${categories.length}`,
-      change: `${categorySpending.length} com gastos`,
+      change: `${allCategorySpending.length} com gastos`,
       trend: 'neutral',
       icon: CreditCard,
       color: 'text-blue-600',
@@ -184,6 +194,18 @@ export default function Dashboard() {
                     </span>
                   </div>
                 ))}
+                {allRecentTransactions.length > 4 && (
+                  <div className="pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllTransactions(!showAllTransactions)}
+                      className="w-full text-muted-foreground hover:text-foreground"
+                    >
+                      {showAllTransactions ? 'Ver menos' : 'Ver mais'}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -225,6 +247,18 @@ export default function Dashboard() {
                     </div>
                   )
                 })}
+                {allCategorySpending.length > 4 && (
+                  <div className="pt-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAllCategories(!showAllCategories)}
+                      className="w-full text-muted-foreground hover:text-foreground"
+                    >
+                      {showAllCategories ? 'Ver menos' : 'Ver mais'}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
