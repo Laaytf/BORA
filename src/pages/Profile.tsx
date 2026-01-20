@@ -1,21 +1,74 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { User, Mail, MapPin, Calendar, Bell, Shield, Moon, Globe } from 'lucide-react'
+import { User, Calendar, Bell, Shield, Moon, Globe } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { useProfile } from '@/hooks/use-profile'
+import { useTransactions } from '@/hooks/use-transactions'
+import { useCategories } from '@/hooks/use-categories'
 
 export default function Profile() {
   const { theme, setTheme } = useTheme()
+  const { profile, loading, updateProfile } = useProfile()
+  const { transactions } = useTransactions()
+  const { categories } = useCategories()
+
+  const [editName, setEditName] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editName.trim()) return
+
+    const result = await updateProfile(editName.trim())
+    if (result) {
+      setIsEditing(false)
+      setEditName('')
+    }
+  }
+
+  // Calcular dias ativos (desde a criação da conta)
+  const daysActive = profile
+    ? Math.floor((new Date().getTime() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0
 
   const stats = [
-    { label: 'Transações', value: '234' },
-    { label: 'Categorias', value: '8' },
-    { label: 'Dias Ativos', value: '45' },
+    { label: 'Transações', value: transactions.length.toString() },
+    { label: 'Categorias', value: categories.length.toString() },
+    { label: 'Dias Ativos', value: daysActive.toString() },
   ]
+
+  // Gerar iniciais do nome para o avatar
+  const getInitials = (name: string | null) => {
+    if (!name) return 'U'
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Erro ao carregar perfil</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -31,16 +84,14 @@ export default function Profile() {
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center space-y-4">
               <Avatar className="h-24 w-24 ring-4 ring-primary/10">
-                <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" />
-                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">JD</AvatarFallback>
+                <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                  {getInitials(profile.name)}
+                </AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="text-2xl font-bold">João Silva</h2>
-                <p className="text-muted-foreground">joao.silva@email.com</p>
+                <h2 className="text-2xl font-bold">{profile.name || 'Usuário'}</h2>
+                <p className="text-muted-foreground">{profile.email}</p>
               </div>
-              <Button variant="outline" className="w-full">
-                Alterar Foto
-              </Button>
             </div>
 
             <Separator className="my-6" />
@@ -60,11 +111,12 @@ export default function Profile() {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Membro desde Novembro 2024</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">São Paulo, Brasil</span>
+                <span className="text-muted-foreground">
+                  Membro desde {new Date(profile.created_at).toLocaleDateString('pt-BR', {
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -81,31 +133,66 @@ export default function Profile() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
+              <form onSubmit={handleSaveProfile} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nome Completo</Label>
-                  <Input id="name" defaultValue="João Silva" />
+                  {isEditing ? (
+                    <Input
+                      id="name"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Digite seu nome"
+                      autoFocus
+                    />
+                  ) : (
+                    <Input
+                      id="name"
+                      value={profile.name || 'Não informado'}
+                      disabled
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="joao.silva@email.com" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profile.email}
+                    disabled
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    O email não pode ser alterado
+                  </p>
                 </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input id="phone" defaultValue="(11) 98765-4321" />
+
+                <div className="flex gap-2">
+                  {isEditing ? (
+                    <>
+                      <Button type="submit">Salvar Alterações</Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setIsEditing(false)
+                          setEditName('')
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setEditName(profile.name || '')
+                        setIsEditing(true)
+                      }}
+                    >
+                      Editar Nome
+                    </Button>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="birth">Data de Nascimento</Label>
-                  <Input id="birth" type="date" defaultValue="1990-01-15" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Endereço</Label>
-                <Input id="address" defaultValue="Rua das Flores, 123 - São Paulo, SP" />
-              </div>
-              <Button>Salvar Alterações</Button>
+              </form>
             </CardContent>
           </Card>
 
@@ -143,25 +230,10 @@ export default function Profile() {
                     <Label>Notificações</Label>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Receber notificações de lembretes
+                    Recurso em desenvolvimento
                   </p>
                 </div>
-                <Switch defaultChecked />
-              </div>
-
-              <Separator />
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <Label>Email Semanal</Label>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Receber resumo semanal por email
-                  </p>
-                </div>
-                <Switch defaultChecked />
+                <Switch disabled />
               </div>
 
               <Separator />
@@ -182,39 +254,9 @@ export default function Profile() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Senha Atual</Label>
-                <Input id="current-password" type="password" placeholder="••••••••" />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">Nova Senha</Label>
-                  <Input id="new-password" type="password" placeholder="••••••••" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Confirmar Senha</Label>
-                  <Input id="confirm-password" type="password" placeholder="••••••••" />
-                </div>
-              </div>
-              <Button variant="secondary">Alterar Senha</Button>
-            </CardContent>
-          </Card>
-
-          {/* Danger Zone */}
-          <Card className="animate-slide-up border-red-200" style={{ animationDelay: '400ms' }}>
-            <CardHeader>
-              <CardTitle className="font-heading text-red-600">Zona de Perigo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50/50">
-                <div>
-                  <p className="font-medium">Excluir Conta</p>
-                  <p className="text-sm text-muted-foreground">
-                    Esta ação é permanente e não pode ser desfeita
-                  </p>
-                </div>
-                <Button variant="destructive">Excluir</Button>
-              </div>
+              <p className="text-sm text-muted-foreground">
+                Para alterar sua senha, faça logout e use a opção "Esqueci minha senha" na tela de login.
+              </p>
             </CardContent>
           </Card>
         </div>
