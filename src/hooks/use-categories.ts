@@ -31,7 +31,12 @@ export function useCategories() {
         .order('created_at', { ascending: true })
 
       if (error) throw error
-      setCategories(data || [])
+      // Garantir que icon existe, usando valor padrão se necessário
+      const categoriesWithIcon = (data || []).map(cat => ({
+        ...cat,
+        icon: (cat as any).icon || '📁'
+      })) as Category[]
+      setCategories(categoriesWithIcon)
     } catch (error: any) {
       toast({
         title: 'Erro ao carregar categorias',
@@ -62,7 +67,12 @@ export function useCategories() {
 
       if (error) throw error
 
-      setCategories([...categories, data])
+      // Garantir que icon existe
+      const categoryWithIcon: Category = {
+        ...data,
+        icon: (data as any).icon || '📁'
+      }
+      setCategories([...categories, categoryWithIcon])
       toast({
         title: 'Categoria criada!',
         description: `A categoria "${name}" foi criada com sucesso.`,
@@ -93,7 +103,12 @@ export function useCategories() {
 
       if (error) throw error
 
-      setCategories(categories.map((cat) => (cat.id === id ? data : cat)))
+      // Garantir que icon existe
+      const updatedCategoryWithIcon: Category = {
+        ...data,
+        icon: (data as any).icon || '📁'
+      }
+      setCategories(categories.map((cat) => (cat.id === id ? updatedCategoryWithIcon : cat)))
       toast({
         title: 'Categoria atualizada!',
         description: 'As alterações foram salvas.',

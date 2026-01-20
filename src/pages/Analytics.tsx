@@ -263,9 +263,11 @@ export default function Analytics() {
                   <div className="flex items-center justify-center p-8">
                     <div className="relative w-48 h-48">
                       {adjustDuplicateColors(categorySpending.slice(0, 5)).map((category, index) => {
+                        // Pegar a categoria original para acessar percentage
+                        const originalCategory = categorySpending.slice(0, 5)[index]
                         const totalBefore = categorySpending.slice(0, index).reduce((sum, c) => sum + c.percentage, 0)
                         const rotation = (totalBefore / 100) * 360
-                        const strokeDasharray = `${category.percentage} ${100 - category.percentage}`
+                        const strokeDasharray = `${originalCategory.percentage} ${100 - originalCategory.percentage}`
 
                         return (
                           <svg
