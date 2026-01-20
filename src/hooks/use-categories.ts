@@ -9,6 +9,7 @@ export interface Category {
   name: string
   color: string
   budget: number
+  icon: string
   created_at: string
 }
 
@@ -43,7 +44,7 @@ export function useCategories() {
   }
 
   // Criar categoria
-  const createCategory = async (name: string, color: string, budget: number = 0) => {
+  const createCategory = async (name: string, color: string, budget: number = 0, icon: string = '📁') => {
     if (!user) return
 
     try {
@@ -54,6 +55,7 @@ export function useCategories() {
           name,
           color,
           budget,
+          icon,
         })
         .select()
         .single()

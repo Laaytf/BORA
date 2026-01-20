@@ -1,23 +1,75 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Plus, ShoppingCart, Car, Home, Utensils, Film, Briefcase, Heart, TrendingUp, Trash2, FolderOpen } from 'lucide-react'
+import { Plus, Trash2, FolderOpen } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { useCategories } from '@/hooks/use-categories'
 import { useTransactions } from '@/hooks/use-transactions'
 
-const iconMap: Record<string, typeof ShoppingCart> = {
-  'Alimentação': Utensils,
-  'Transporte': Car,
-  'Lazer': Film,
-  'Contas': Home,
-  'Compras': ShoppingCart,
-  'Trabalho': Briefcase,
-  'Saúde': Heart,
-  'Investimentos': TrendingUp,
+// Mapeamento de palavras-chave para sugestão automática de emojis
+const emojiSuggestions: Record<string, string> = {
+  'alimentação': '🍽️',
+  'comida': '🍔',
+  'restaurante': '🍽️',
+  'supermercado': '🛒',
+  'mercado': '🛒',
+  'compras': '🛒',
+  'transporte': '🚗',
+  'carro': '🚗',
+  'uber': '🚕',
+  'taxi': '🚕',
+  'gasolina': '⛽',
+  'combustível': '⛽',
+  'lazer': '🎮',
+  'entretenimento': '🎬',
+  'diversão': '🎉',
+  'cinema': '🎬',
+  'contas': '🧾',
+  'conta': '🧾',
+  'boleto': '🧾',
+  'casa': '🏠',
+  'moradia': '🏠',
+  'aluguel': '🏠',
+  'trabalho': '💼',
+  'escritório': '💼',
+  'saúde': '💊',
+  'médico': '⚕️',
+  'hospital': '🏥',
+  'farmácia': '💊',
+  'remédio': '💊',
+  'educação': '🎓',
+  'estudo': '📚',
+  'curso': '🎓',
+  'escola': '🎓',
+  'faculdade': '🎓',
+  'investimento': '📈',
+  'investimentos': '📈',
+  'poupança': '💰',
+  'economia': '💰',
+  'viagem': '✈️',
+  'férias': '🏖️',
+  'turismo': '✈️',
+  'roupa': '👕',
+  'vestuário': '👕',
+  'beleza': '💄',
+  'cosméticos': '💄',
+  'pet': '🐾',
+  'animal': '🐾',
+  'cachorro': '🐕',
+  'gato': '🐈',
+  'telefone': '📱',
+  'celular': '📱',
+  'internet': '🌐',
+  'energia': '⚡',
+  'luz': '💡',
+  'água': '💧',
+  'academia': '🏋️',
+  'esporte': '⚽',
+  'presente': '🎁',
+  'gift': '🎁',
 }
 
 export default function Categories() {
@@ -29,16 +81,40 @@ export default function Categories() {
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryBudget, setNewCategoryBudget] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState('#3B82F6')
+  const [newCategoryIcon, setNewCategoryIcon] = useState('📁')
+
+  // Função para sugerir emoji baseado no nome
+  const suggestEmoji = (name: string): string => {
+    const nameLower = name.toLowerCase().trim()
+
+    // Procurar correspondência exata ou parcial
+    for (const [keyword, emoji] of Object.entries(emojiSuggestions)) {
+      if (nameLower.includes(keyword)) {
+        return emoji
+      }
+    }
+
+    return '📁' // Emoji padrão
+  }
+
+  // Atualizar sugestão de emoji quando o nome mudar
+  useEffect(() => {
+    if (newCategoryName) {
+      const suggested = suggestEmoji(newCategoryName)
+      setNewCategoryIcon(suggested)
+    }
+  }, [newCategoryName])
 
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault()
     const budget = parseFloat(newCategoryBudget) || 0
-    await createCategory(newCategoryName, newCategoryColor, budget)
+    await createCategory(newCategoryName, newCategoryColor, budget, newCategoryIcon)
 
     // Limpar formulário
     setNewCategoryName('')
     setNewCategoryBudget('')
     setNewCategoryColor('#3B82F6')
+    setNewCategoryIcon('📁')
     setIsCreateDialogOpen(false)
   }
 
@@ -94,6 +170,30 @@ export default function Categories() {
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   required
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="icon">Emoji da Categoria</Label>
+                <div className="flex gap-3 items-center">
+                  <div
+                    className="p-4 rounded-xl text-4xl flex items-center justify-center"
+                    style={{ backgroundColor: `${newCategoryColor}20` }}
+                  >
+                    {newCategoryIcon}
+                  </div>
+                  <Input
+                    id="icon"
+                    placeholder="Digite um emoji"
+                    value={newCategoryIcon}
+                    onChange={(e) => setNewCategoryIcon(e.target.value || '📁')}
+                    maxLength={2}
+                    className="text-2xl text-center w-20"
+                  />
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">
+                      Sugestão automática baseada no nome
+                    </p>
+                  </div>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="budget">Orçamento Mensal</Label>
@@ -192,7 +292,6 @@ export default function Categories() {
             const spent = getCategorySpent(category.id)
             const percentage = category.budget > 0 ? (spent / category.budget) * 100 : 0
             const isOverBudget = percentage > 100
-            const Icon = iconMap[category.name] || ShoppingCart
 
             return (
               <Card
@@ -203,10 +302,10 @@ export default function Categories() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div
-                      className="p-3 rounded-xl group-hover:scale-110 transition-transform"
+                      className="p-3 rounded-xl group-hover:scale-110 transition-transform text-3xl flex items-center justify-center"
                       style={{ backgroundColor: `${category.color}20` }}
                     >
-                      <Icon className="h-6 w-6" style={{ color: category.color }} />
+                      {category.icon || '📁'}
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Transações</p>
