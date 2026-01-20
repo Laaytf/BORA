@@ -172,30 +172,6 @@ export default function Categories() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="icon">Emoji da Categoria</Label>
-                <div className="flex gap-3 items-center">
-                  <div
-                    className="p-4 rounded-xl text-4xl flex items-center justify-center"
-                    style={{ backgroundColor: `${newCategoryColor}20` }}
-                  >
-                    {newCategoryIcon}
-                  </div>
-                  <Input
-                    id="icon"
-                    placeholder="Digite um emoji"
-                    value={newCategoryIcon}
-                    onChange={(e) => setNewCategoryIcon(e.target.value || '📁')}
-                    maxLength={2}
-                    className="text-2xl text-center w-20"
-                  />
-                  <div className="flex-1">
-                    <p className="text-xs text-muted-foreground">
-                      Sugestão automática baseada no nome
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-2">
                 <Label htmlFor="budget">Orçamento Mensal</Label>
                 <Input
                   id="budget"
