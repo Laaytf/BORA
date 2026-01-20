@@ -5,17 +5,22 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Plus, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Plus, Search, ArrowUpRight, ArrowDownRight, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useTransactions } from '@/hooks/use-transactions'
+import { useTransactions, type Transaction } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 
 export default function Transactions() {
-  const { transactions, loading, createTransaction } = useTransactions()
+  const { transactions, loading, createTransaction, updateTransaction, deleteTransaction } = useTransactions()
   const { categories } = useCategories()
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
 
   // Formulário de criação
   const [newDescription, setNewDescription] = useState('')
@@ -38,6 +43,53 @@ export default function Transactions() {
     setNewCategoryId('')
     setNewDate(new Date().toISOString().split('T')[0])
     setIsCreateDialogOpen(false)
+  }
+
+  const handleEditTransaction = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedTransaction) return
+
+    const amount = parseFloat(newAmount)
+    if (isNaN(amount) || amount <= 0) return
+
+    await updateTransaction(selectedTransaction.id, {
+      type: newType,
+      description: newDescription,
+      amount,
+      category_id: newCategoryId || null,
+      date: newDate,
+    })
+
+    // Limpar formulário
+    setNewDescription('')
+    setNewAmount('')
+    setNewType('expense')
+    setNewCategoryId('')
+    setNewDate(new Date().toISOString().split('T')[0])
+    setSelectedTransaction(null)
+    setIsEditDialogOpen(false)
+  }
+
+  const handleDeleteTransaction = async () => {
+    if (!selectedTransaction) return
+    await deleteTransaction(selectedTransaction.id)
+    setSelectedTransaction(null)
+    setIsDeleteDialogOpen(false)
+  }
+
+  const openEditDialog = (transaction: Transaction) => {
+    setSelectedTransaction(transaction)
+    setNewDescription(transaction.description)
+    setNewAmount(transaction.amount.toString())
+    setNewType(transaction.type)
+    setNewCategoryId(transaction.category_id || '')
+    setNewDate(transaction.date)
+    setIsEditDialogOpen(true)
+  }
+
+  const openDeleteDialog = (transaction: Transaction) => {
+    setSelectedTransaction(transaction)
+    setIsDeleteDialogOpen(true)
   }
 
   const filteredTransactions = transactions.filter((transaction) => {
@@ -275,14 +327,36 @@ export default function Transactions() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span
-                      className={`text-lg font-bold ${
-                        transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
-                      }`}
-                    >
-                      {transaction.type === 'income' ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
-                    </span>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <span
+                        className={`text-lg font-bold ${
+                          transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
+                        {transaction.type === 'income' ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
+                      </span>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(transaction)}>
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => openDeleteDialog(transaction)}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Apagar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               ))}
@@ -290,6 +364,101 @@ export default function Transactions() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Editar Transação</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditTransaction} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Descrição</Label>
+              <Input
+                id="edit-description"
+                placeholder="Ex: Supermercado"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-amount">Valor</Label>
+                <Input
+                  id="edit-amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0,00"
+                  value={newAmount}
+                  onChange={(e) => setNewAmount(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-type">Tipo</Label>
+                <Select value={newType} onValueChange={(value) => setNewType(value as 'income' | 'expense')}>
+                  <SelectTrigger id="edit-type">
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Receita</SelectItem>
+                    <SelectItem value="expense">Despesa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {newType === 'expense' && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-category">Categoria</Label>
+                  <Select value={newCategoryId || undefined} onValueChange={setNewCategoryId}>
+                    <SelectTrigger id="edit-category">
+                      <SelectValue placeholder="Sem categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="edit-date">Data</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={newDate}
+                  onChange={(e) => setNewDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <Button type="submit" className="w-full">Salvar Alterações</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de Confirmação de Exclusão */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A transação será permanentemente excluída.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Apagar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
