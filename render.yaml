@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: webhook-ticto
+    env: node
+    buildCommand: npm install
+    startCommand: node server/webhook.js
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: WEBHOOK_PORT
+        value: 3001
+      - key: WEBHOOK_SECRET_TOKEN
+        sync: false
+      - key: NODE_ENV
+        value: production

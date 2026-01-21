@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "webhook": "node server/webhook.js",
-    "test:webhook": "node server/test-webhook.js"
+    "test:webhook": "node server/test-webhook.js",
+    "start": "node server/webhook.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^4.1.3",
