@@ -72,7 +72,8 @@ export function useProfile() {
 
   useEffect(() => {
     fetchProfile()
-  }, [user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
   return {
     profile,

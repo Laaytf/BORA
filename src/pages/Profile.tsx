@@ -42,7 +42,11 @@ export default function Profile() {
     }
   }
 
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setIsEditing(false)
     setEditName('')
   }
@@ -232,7 +236,7 @@ export default function Profile() {
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       placeholder="Digite seu nome"
-                      autoFocus
+                      autoComplete="off"
                     />
                   ) : (
                     <Input
@@ -270,7 +274,9 @@ export default function Profile() {
                   ) : (
                     <Button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
                         setEditName(profile.name || '')
                         setIsEditing(true)
                       }}
