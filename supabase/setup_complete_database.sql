@@ -1,8 +1,9 @@
 -- ==========================================
--- SCRIPT COMPLETO DE SETUP DO BANCO DE DADOS
+-- SETUP COMPLETO DO BANCO DE DADOS - FinanceApp
 -- ==========================================
--- Este script recria todas as tabelas necessárias para o FinanceApp
--- Execução: Pode ser executado múltiplas vezes (usa IF NOT EXISTS)
+-- Este script recria TODAS as tabelas necessárias
+-- Pode ser executado múltiplas vezes com segurança
+-- Data: 2025-01-21
 -- ==========================================
 
 -- 1. TABELA: profiles
@@ -169,7 +170,21 @@ CREATE TRIGGER on_auth_user_created
   EXECUTE FUNCTION public.handle_new_user();
 
 -- ==========================================
--- 5. PERMISSÕES
+-- 5. CRIAR PERFIL PARA USUÁRIOS EXISTENTES
+-- ==========================================
+-- Este bloco cria perfis para usuários que já existem
+-- mas não têm registro na tabela profiles
+
+INSERT INTO public.profiles (id, email, name)
+SELECT 
+  id, 
+  email,
+  COALESCE(raw_user_meta_data->>'name', email)
+FROM auth.users
+ON CONFLICT (id) DO NOTHING;
+
+-- ==========================================
+-- 6. PERMISSÕES
 -- ==========================================
 -- Garante que usuários autenticados possam acessar as tabelas
 
@@ -179,7 +194,10 @@ GRANT ALL ON public.categories TO authenticated;
 GRANT ALL ON public.transactions TO authenticated;
 
 -- ==========================================
--- SCRIPT COMPLETO - FIM
+-- SETUP COMPLETO - SUCESSO!
 -- ==========================================
--- Todas as tabelas foram criadas com sucesso!
--- O aplicativo está pronto para uso.
+-- ✅ Todas as tabelas foram criadas
+-- ✅ RLS configurado para segurança
+-- ✅ Trigger automático de perfis ativo
+-- ✅ Perfis criados para usuários existentes
+-- O aplicativo está pronto para uso!
