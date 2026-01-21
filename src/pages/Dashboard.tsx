@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { TrendingUp, TrendingDown, Wallet, CreditCard, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
+import { formatCurrency } from '@/lib/utils'
 
 export default function Dashboard() {
   const { transactions, loading: transactionsLoading } = useTransactions()
@@ -60,7 +61,7 @@ export default function Dashboard() {
   const stats = [
     {
       title: 'Saldo Total',
-      value: `R$ ${balance.toFixed(2)}`,
+      value: `R$ ${formatCurrency(balance)}`,
       change: balance >= 0 ? 'Positivo' : 'Negativo',
       trend: balance >= 0 ? 'up' : 'down',
       icon: Wallet,
@@ -69,7 +70,7 @@ export default function Dashboard() {
     },
     {
       title: 'Receitas',
-      value: `R$ ${totalIncome.toFixed(2)}`,
+      value: `R$ ${formatCurrency(totalIncome)}`,
       change: `${transactions.filter((t) => t.type === 'income').length} transações`,
       trend: 'up',
       icon: TrendingUp,
@@ -78,7 +79,7 @@ export default function Dashboard() {
     },
     {
       title: 'Despesas',
-      value: `R$ ${totalExpense.toFixed(2)}`,
+      value: `R$ ${formatCurrency(totalExpense)}`,
       change: `${transactions.filter((t) => t.type === 'expense').length} transações`,
       trend: 'down',
       icon: TrendingDown,
@@ -191,7 +192,7 @@ export default function Dashboard() {
                         transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
                       }`}
                     >
-                      {transaction.type === 'income' ? '+' : ''}R$ {transaction.amount.toFixed(2)}
+                      {transaction.type === 'income' ? '+' : ''}R$ {formatCurrency(transaction.amount)}
                     </span>
                   </div>
                 ))}
@@ -236,7 +237,7 @@ export default function Dashboard() {
                           <span className="text-lg">{category.icon}</span>
                           <span className="font-medium">{category.name}</span>
                         </div>
-                        <span className="text-muted-foreground">R$ {category.amount.toFixed(2)}</span>
+                        <span className="text-muted-foreground">R$ {formatCurrency(category.amount)}</span>
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
                         <div

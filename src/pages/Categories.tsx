@@ -9,6 +9,7 @@ import { Plus, Trash2, FolderOpen, MoreVertical, Pencil } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { useCategories, type Category } from '@/hooks/use-categories'
 import { useTransactions } from '@/hooks/use-transactions'
+import { formatCurrency } from '@/lib/utils'
 
 // Mapeamento de palavras-chave para sugestão automática de emojis
 const emojiSuggestions: Record<string, string> = {
@@ -247,17 +248,17 @@ export default function Categories() {
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-muted-foreground">Gasto Total</p>
-                <p className="text-2xl font-bold">R$ {totalSpent.toFixed(2)}</p>
+                <p className="text-2xl font-bold">R$ {formatCurrency(totalSpent)}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Orçamento Total</p>
-                <p className="text-2xl font-bold text-muted-foreground">R$ {totalBudget.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-muted-foreground">R$ {formatCurrency(totalBudget)}</p>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Utilizado</span>
-                <span className="font-medium">{percentageUsed.toFixed(1)}%</span>
+                <span className="font-medium">{percentageUsed.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
               </div>
               <Progress value={Math.min(percentageUsed, 100)} className="h-3" />
             </div>
@@ -265,13 +266,13 @@ export default function Categories() {
               <div className="text-center p-3 bg-emerald-500/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Disponível</p>
                 <p className="text-lg font-bold text-emerald-600">
-                  R$ {(totalBudget - totalSpent).toFixed(2)}
+                  R$ {formatCurrency(totalBudget - totalSpent)}
                 </p>
               </div>
               <div className="text-center p-3 bg-blue-500/10 rounded-lg">
                 <p className="text-sm text-muted-foreground">Economia</p>
                 <p className="text-lg font-bold text-blue-600">
-                  {totalBudget > 0 ? ((1 - percentageUsed / 100) * 100).toFixed(1) : '0.0'}%
+                  {totalBudget > 0 ? ((1 - percentageUsed / 100) * 100).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : '0,0'}%
                 </p>
               </div>
             </div>
@@ -326,21 +327,21 @@ export default function Categories() {
                   <div>
                     <h3 className="font-semibold text-lg">{category.name}</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Orçamento: R$ {category.budget.toFixed(2)}
+                      Orçamento: R$ {formatCurrency(category.budget)}
                     </p>
                   </div>
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className={isOverBudget ? 'text-red-600 font-semibold' : 'text-foreground'}>
-                        R$ {spent.toFixed(2)}
+                        R$ {formatCurrency(spent)}
                       </span>
                       <span className={`font-medium ${
                         percentage > 80 ? 'text-red-600' :
                         percentage > 60 ? 'text-orange-600' :
                         'text-muted-foreground'
                       }`}>
-                        {percentage.toFixed(0)}%
+                        {Math.round(percentage)}%
                       </span>
                     </div>
                     <Progress
@@ -352,7 +353,7 @@ export default function Categories() {
                   {isOverBudget && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-2">
                       <p className="text-xs text-red-600 font-medium">
-                        Orçamento excedido em R$ {(spent - category.budget).toFixed(2)}
+                        Orçamento excedido em R$ {formatCurrency(spent - category.budget)}
                       </p>
                     </div>
                   )}
@@ -360,7 +361,7 @@ export default function Categories() {
                   {!isOverBudget && category.budget > 0 && (
                     <div className="bg-secondary rounded-lg p-2">
                       <p className="text-xs text-muted-foreground">
-                        Restam R$ {(category.budget - spent).toFixed(2)}
+                        Restam R$ {formatCurrency(category.budget - spent)}
                       </p>
                     </div>
                   )}

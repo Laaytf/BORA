@@ -3,6 +3,7 @@ import { TrendingUp, DollarSign, PieChart, BarChart3, ArrowUpRight, ArrowDownRig
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { useAnalytics } from '@/hooks/use-analytics'
+import { formatCurrency } from '@/lib/utils'
 
 // Função para ajustar automaticamente cores duplicadas com variações de luminosidade
 function adjustDuplicateColors(categories: Array<{ color: string; [key: string]: any }>) {
@@ -52,8 +53,8 @@ export default function Analytics() {
   const insights = [
     {
       title: 'Economia Total',
-      value: `R$ ${totals.balance.toFixed(2)}`,
-      change: totals.savingsRate > 0 ? `${totals.savingsRate.toFixed(1)}%` : '0%',
+      value: `R$ ${formatCurrency(totals.balance)}`,
+      change: totals.savingsRate > 0 ? `${totals.savingsRate.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%` : '0%',
       trend: totals.balance >= 0 ? 'up' : 'down',
       description: totals.savingsRate > 0
         ? `Você economizou ${totals.savingsRate.toFixed(0)}% da sua receita total`
@@ -64,9 +65,9 @@ export default function Analytics() {
     },
     {
       title: 'Média de Gastos',
-      value: `R$ ${dailyAverage.toFixed(2)}`,
+      value: `R$ ${formatCurrency(dailyAverage)}`,
       change: periodComparison.change.expense !== 0
-        ? `${periodComparison.change.expense > 0 ? '+' : ''}${periodComparison.change.expense.toFixed(1)}%`
+        ? `${periodComparison.change.expense > 0 ? '+' : ''}${periodComparison.change.expense.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
         : 'Sem mudanças',
       trend: periodComparison.change.expense < 0 ? 'down' : periodComparison.change.expense > 0 ? 'up' : 'neutral',
       description: periodComparison.change.expense < 0
@@ -81,7 +82,7 @@ export default function Analytics() {
     {
       title: 'Maior Categoria',
       value: topCategory?.name || 'Nenhuma',
-      change: topCategory ? `${topCategory.percentage.toFixed(0)}% do total` : '0%',
+      change: topCategory ? `${Math.round(topCategory.percentage)}% do total` : '0%',
       trend: 'neutral',
       description: topCategory
         ? 'Categoria com maior volume de gastos'
@@ -174,7 +175,7 @@ export default function Analytics() {
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-emerald-600">Receita</span>
-                              <span className="font-medium">R$ {data.income.toFixed(0)}</span>
+                              <span className="font-medium">R$ {formatCurrency(data.income, 'never')}</span>
                             </div>
                             <div className="h-3 bg-secondary rounded-full overflow-hidden">
                               <div
@@ -186,7 +187,7 @@ export default function Analytics() {
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between text-xs">
                               <span className="text-red-600">Despesa</span>
-                              <span className="font-medium">R$ {data.expense.toFixed(0)}</span>
+                              <span className="font-medium">R$ {formatCurrency(data.expense, 'never')}</span>
                             </div>
                             <div className="h-3 bg-secondary rounded-full overflow-hidden">
                               <div
@@ -197,7 +198,7 @@ export default function Analytics() {
                           </div>
                         </div>
                         <span className={`font-semibold w-20 text-right ${data.balance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {data.balance >= 0 ? '+' : ''}R$ {data.balance.toFixed(0)}
+                          {data.balance >= 0 ? '+' : ''}R$ {formatCurrency(data.balance, 'never')}
                         </span>
                       </div>
                     </div>
@@ -224,7 +225,7 @@ export default function Analytics() {
                     <p className={`text-3xl font-bold ${
                       totals.balance >= 0 ? 'text-emerald-600' : 'text-red-600'
                     }`}>
-                      R$ {totals.balance.toFixed(2)}
+                      R$ {formatCurrency(totals.balance)}
                     </p>
                   </div>
                   <TrendingUp className={`h-12 w-12 ${
@@ -234,11 +235,11 @@ export default function Analytics() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 border rounded-lg">
                     <p className="text-sm text-muted-foreground">Total Receitas</p>
-                    <p className="text-xl font-bold text-emerald-600">R$ {totals.income.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-emerald-600">R$ {formatCurrency(totals.income)}</p>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <p className="text-sm text-muted-foreground">Total Despesas</p>
-                    <p className="text-xl font-bold text-red-600">R$ {totals.expense.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-red-600">R$ {formatCurrency(totals.expense)}</p>
                   </div>
                 </div>
               </div>
@@ -322,8 +323,8 @@ export default function Analytics() {
                               <span className="font-medium">{category.name}</span>
                             </div>
                             <div className="text-right">
-                              <p className="font-semibold">R$ {category.amount.toFixed(2)}</p>
-                              <p className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}% do total</p>
+                              <p className="font-semibold">R$ {formatCurrency(category.amount)}</p>
+                              <p className="text-xs text-muted-foreground">{category.percentage.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% do total</p>
                             </div>
                           </div>
                           <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
@@ -361,13 +362,13 @@ export default function Analytics() {
                       <div className="flex justify-between">
                         <span className="text-sm">Receitas</span>
                         <span className="font-semibold text-emerald-600">
-                          R$ {periodComparison.currentMonth.income.toFixed(2)}
+                          R$ {formatCurrency(periodComparison.currentMonth.income)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Despesas</span>
                         <span className="font-semibold text-red-600">
-                          R$ {periodComparison.currentMonth.expense.toFixed(2)}
+                          R$ {formatCurrency(periodComparison.currentMonth.expense)}
                         </span>
                       </div>
                       <Separator />
@@ -376,7 +377,7 @@ export default function Analytics() {
                         <span className={`font-bold ${
                           periodComparison.currentMonth.balance >= 0 ? 'text-emerald-600' : 'text-red-600'
                         }`}>
-                          R$ {periodComparison.currentMonth.balance.toFixed(2)}
+                          R$ {formatCurrency(periodComparison.currentMonth.balance)}
                         </span>
                       </div>
                     </div>
@@ -388,13 +389,13 @@ export default function Analytics() {
                       <div className="flex justify-between">
                         <span className="text-sm">Receitas</span>
                         <span className="font-semibold text-emerald-600">
-                          R$ {periodComparison.previousMonth.income.toFixed(2)}
+                          R$ {formatCurrency(periodComparison.previousMonth.income)}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm">Despesas</span>
                         <span className="font-semibold text-red-600">
-                          R$ {periodComparison.previousMonth.expense.toFixed(2)}
+                          R$ {formatCurrency(periodComparison.previousMonth.expense)}
                         </span>
                       </div>
                       <Separator />
@@ -403,7 +404,7 @@ export default function Analytics() {
                         <span className={`font-bold ${
                           periodComparison.previousMonth.balance >= 0 ? 'text-emerald-600' : 'text-red-600'
                         }`}>
-                          R$ {periodComparison.previousMonth.balance.toFixed(2)}
+                          R$ {formatCurrency(periodComparison.previousMonth.balance)}
                         </span>
                       </div>
                     </div>
@@ -428,7 +429,7 @@ export default function Analytics() {
                           'text-muted-foreground'
                         }`}>
                           {periodComparison.change.income > 0 ? '+' : ''}
-                          {periodComparison.change.income.toFixed(1)}%
+                          {periodComparison.change.income.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </span>
                       </div>
                     </div>
@@ -447,7 +448,7 @@ export default function Analytics() {
                           'text-muted-foreground'
                         }`}>
                           {periodComparison.change.expense > 0 ? '+' : ''}
-                          {periodComparison.change.expense.toFixed(1)}%
+                          {periodComparison.change.expense.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </span>
                       </div>
                     </div>
@@ -466,7 +467,7 @@ export default function Analytics() {
                           'text-muted-foreground'
                         }`}>
                           {periodComparison.change.balance > 0 ? '+' : ''}
-                          {periodComparison.change.balance.toFixed(1)}%
+                          {periodComparison.change.balance.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%
                         </span>
                       </div>
                     </div>

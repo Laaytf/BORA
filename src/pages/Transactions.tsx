@@ -11,6 +11,7 @@ import { Plus, Search, ArrowUpRight, ArrowDownRight, MoreVertical, Pencil, Trash
 import { Badge } from '@/components/ui/badge'
 import { useTransactions, type Transaction } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
+import { formatCurrency } from '@/lib/utils'
 
 export default function Transactions() {
   const { transactions, loading, createTransaction, updateTransaction, deleteTransaction } = useTransactions()
@@ -227,7 +228,7 @@ export default function Transactions() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">
-              R$ {totalIncome.toFixed(2)}
+              R$ {formatCurrency(totalIncome)}
             </div>
           </CardContent>
         </Card>
@@ -242,7 +243,7 @@ export default function Transactions() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              R$ {totalExpense.toFixed(2)}
+              R$ {formatCurrency(totalExpense)}
             </div>
           </CardContent>
         </Card>
@@ -337,7 +338,7 @@ export default function Transactions() {
                           transaction.type === 'income' ? 'text-emerald-600' : 'text-red-600'
                         }`}
                       >
-                        {transaction.type === 'income' ? '+' : '-'}R$ {transaction.amount.toFixed(2)}
+                        {transaction.type === 'income' ? '+' : '-'}R$ {formatCurrency(transaction.amount)}
                       </span>
                     </div>
                     <DropdownMenu>
