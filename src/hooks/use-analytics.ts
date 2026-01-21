@@ -39,13 +39,28 @@ export function useAnalytics() {
   const { transactions, loading } = useTransactions()
   const { categories } = useCategories()
 
-  // Calcular dados mensais (últimos 6 meses)
+  // Determinar a data de referência (mais recente das transações ou data atual)
+  const referenceDate = useMemo(() => {
+    if (transactions.length === 0) {
+      return new Date()
+    }
+
+    // Encontrar a data mais recente entre todas as transações
+    const mostRecentDate = transactions.reduce((latest, transaction) => {
+      const transactionDate = new Date(transaction.date)
+      return transactionDate > latest ? transactionDate : latest
+    }, new Date(transactions[0].date))
+
+    return mostRecentDate
+  }, [transactions])
+
+  // Calcular dados mensais (últimos 6 meses a partir da data de referência)
   const monthlyData = useMemo((): MonthlyData[] => {
     const months: MonthlyData[] = []
-    const now = new Date()
+    const baseDate = referenceDate
 
     for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const date = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1)
       const monthStr = date.toLocaleDateString('pt-BR', { month: 'short' })
       const monthStart = new Date(date.getFullYear(), date.getMonth(), 1)
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
@@ -72,18 +87,19 @@ export function useAnalytics() {
     }
 
     return months
-  }, [transactions])
+  }, [transactions, referenceDate])
 
-  // Comparação mês atual vs mês anterior
+  // Comparação mês atual vs mês anterior (baseado na data de referência)
   const periodComparison = useMemo((): PeriodComparison => {
-    const now = new Date()
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0)
+    const baseDate = referenceDate
+    const currentMonthStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)
+    const currentMonthEnd = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0)
+    const previousMonthStart = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1)
+    const previousMonthEnd = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0)
 
     const currentMonthTransactions = transactions.filter((t) => {
       const tDate = new Date(t.date)
-      return tDate >= currentMonthStart
+      return tDate >= currentMonthStart && tDate <= currentMonthEnd
     })
 
     const previousMonthTransactions = transactions.filter((t) => {
@@ -127,7 +143,7 @@ export function useAnalytics() {
         balance: previousBalance !== 0 ? ((currentBalance - previousBalance) / Math.abs(previousBalance)) * 100 : 0,
       },
     }
-  }, [transactions])
+  }, [transactions, referenceDate])
 
   // Gastos por categoria
   const categorySpending = useMemo((): CategorySpending[] => {
@@ -172,21 +188,23 @@ export function useAnalytics() {
     }
   }, [transactions])
 
-  // Média de gastos diários (mês atual)
+  // Média de gastos diários (baseado no mês de referência)
   const dailyAverage = useMemo(() => {
-    const now = new Date()
-    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const baseDate = referenceDate
+    const currentMonthStart = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)
+    const currentMonthEnd = new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0)
 
     const currentMonthExpenses = transactions
       .filter((t) => {
         const tDate = new Date(t.date)
-        return t.type === 'expense' && tDate >= currentMonthStart
+        return t.type === 'expense' && tDate >= currentMonthStart && tDate <= currentMonthEnd
       })
       .reduce((sum, t) => sum + t.amount, 0)
 
-    const daysInMonth = now.getDate() // Dias decorridos no mês atual
+    // Usar o dia da data de referência ou o último dia do mês, o que for menor
+    const daysInMonth = Math.min(baseDate.getDate(), currentMonthEnd.getDate())
     return daysInMonth > 0 ? currentMonthExpenses / daysInMonth : 0
-  }, [transactions])
+  }, [transactions, referenceDate])
 
   // Maior categoria de gastos
   const topCategory = useMemo(() => {
