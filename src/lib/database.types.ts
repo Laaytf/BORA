@@ -37,6 +37,7 @@ export interface Database {
           name: string
           color: string
           budget: number
+          icon: string
           created_at: string
         }
         Insert: {
@@ -45,6 +46,7 @@ export interface Database {
           name: string
           color?: string
           budget?: number
+          icon?: string
           created_at?: string
         }
         Update: {
@@ -53,6 +55,7 @@ export interface Database {
           name?: string
           color?: string
           budget?: number
+          icon?: string
           created_at?: string
         }
         Relationships: [

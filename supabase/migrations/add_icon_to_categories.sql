@@ -1,6 +1,8 @@
--- Adicionar coluna icon para armazenar emojis nas categorias
-ALTER TABLE categories
+-- Adicionar coluna icon na tabela categories
+-- Esta coluna armazena o emoji representativo de cada categoria
+
+ALTER TABLE public.categories
 ADD COLUMN IF NOT EXISTS icon TEXT DEFAULT '📁';
 
--- Atualizar categorias existentes com emojis padrão
-UPDATE categories SET icon = '📁' WHERE icon IS NULL;
+-- Adicionar comentário na coluna
+COMMENT ON COLUMN public.categories.icon IS 'Emoji representativo da categoria';
