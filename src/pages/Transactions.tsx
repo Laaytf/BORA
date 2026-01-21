@@ -12,10 +12,12 @@ import { Badge } from '@/components/ui/badge'
 import { useTransactions, type Transaction } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
 import { formatCurrency } from '@/lib/utils'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Transactions() {
   const { transactions, loading, createTransaction, updateTransaction, deleteTransaction } = useTransactions()
   const { categories } = useCategories()
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -35,6 +37,20 @@ export default function Transactions() {
     const amount = parseFloat(newAmount)
     if (isNaN(amount) || amount <= 0) return
 
+    // Validar se a data não é futura
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedDate = new Date(newDate + 'T00:00:00')
+
+    if (selectedDate > today) {
+      toast({
+        title: 'Data inválida',
+        description: 'Não é possível criar transações com data futura.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     await createTransaction(newType, newDescription, amount, newCategoryId || null, newDate)
 
     // Limpar formulário
@@ -52,6 +68,20 @@ export default function Transactions() {
 
     const amount = parseFloat(newAmount)
     if (isNaN(amount) || amount <= 0) return
+
+    // Validar se a data não é futura
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedDate = new Date(newDate + 'T00:00:00')
+
+    if (selectedDate > today) {
+      toast({
+        title: 'Data inválida',
+        description: 'Não é possível editar transações com data futura.',
+        variant: 'destructive',
+      })
+      return
+    }
 
     await updateTransaction(selectedTransaction.id, {
       type: newType,
@@ -204,6 +234,7 @@ export default function Transactions() {
                     id="date"
                     type="date"
                     value={newDate}
+                    max={new Date().toISOString().split('T')[0]}
                     onChange={(e) => setNewDate(e.target.value)}
                     required
                   />
@@ -439,6 +470,7 @@ export default function Transactions() {
                   id="edit-date"
                   type="date"
                   value={newDate}
+                  max={new Date().toISOString().split('T')[0]}
                   onChange={(e) => setNewDate(e.target.value)}
                   required
                 />
