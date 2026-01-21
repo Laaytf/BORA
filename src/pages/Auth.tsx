@@ -73,7 +73,7 @@ export default function Auth() {
           <div className="inline-flex items-center justify-center p-4 bg-primary rounded-2xl mb-4 animate-scale-in">
             <Wallet className="h-10 w-10 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-heading font-bold">FinanceApp</h1>
+          <h1 className="text-3xl font-heading font-bold">FinanceControl</h1>
           <p className="text-muted-foreground mt-2">Controle suas finanças de forma simples</p>
         </div>
 

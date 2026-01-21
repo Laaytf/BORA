@@ -38,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span className="text-xl font-bold text-white">F</span>
             </div>
             <h1 className="text-xl font-heading font-bold">
-              <span className="text-gradient">FinSmart</span>
+              <span className="text-gradient">FinanceControl</span>
             </h1>
           </div>
 
