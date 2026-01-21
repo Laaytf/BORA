@@ -11,15 +11,25 @@ import { useTheme } from 'next-themes'
 import { useProfile } from '@/hooks/use-profile'
 import { useTransactions } from '@/hooks/use-transactions'
 import { useCategories } from '@/hooks/use-categories'
+import { supabase } from '@/lib/supabase'
+import { useToast } from '@/hooks/use-toast'
+import { useNavigate } from 'react-router-dom'
 
 export default function Profile() {
   const { theme, setTheme } = useTheme()
   const { profile, loading, updateProfile } = useProfile()
   const { transactions } = useTransactions()
   const { categories } = useCategories()
+  const { toast } = useToast()
+  const navigate = useNavigate()
 
   const [editName, setEditName] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+
+  // Estados para alteração de senha
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -35,6 +45,81 @@ export default function Profile() {
   const handleCancelEdit = () => {
     setIsEditing(false)
     setEditName('')
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Validação 1: Campos vazios
+    if (!newPassword.trim() || !confirmPassword.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Preencha todos os campos.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Validação 2: Senhas não coincidem
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: 'Erro',
+        description: 'As senhas não coincidem.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Validação 3: Senha muito curta
+    if (newPassword.length < 6) {
+      toast({
+        title: 'Erro',
+        description: 'A senha deve ter pelo menos 6 caracteres.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsChangingPassword(true)
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      })
+
+      if (error) {
+        toast({
+          title: 'Erro ao alterar senha',
+          description: error.message,
+          variant: 'destructive',
+        })
+        return
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'Senha alterada com sucesso.',
+      })
+
+      // Limpar campos
+      setNewPassword('')
+      setConfirmPassword('')
+
+      // Fazer logout e redirecionar para login
+      setTimeout(async () => {
+        await supabase.auth.signOut()
+        navigate('/login')
+      }, 1500)
+
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Ocorreu um erro ao alterar a senha. Tente novamente.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsChangingPassword(false)
+    }
   }
 
   // Calcular dias ativos (desde a criação da conta)
@@ -240,10 +325,44 @@ export default function Profile() {
                 Segurança
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Para alterar sua senha, faça logout e use a opção "Esqueci minha senha" na tela de login.
-              </p>
+            <CardContent>
+              <form onSubmit={handleChangePassword} className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Alterar Senha</h3>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">Nova senha</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    placeholder="Digite a nova senha"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isChangingPassword}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirmar nova senha</Label>
+                  <Input
+                    id="confirm-password"
+                    type="password"
+                    placeholder="Confirme a nova senha"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isChangingPassword}
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isChangingPassword}
+                  className="w-full sm:w-auto"
+                >
+                  {isChangingPassword ? 'Alterando senha...' : 'Alterar senha'}
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
