@@ -300,27 +300,44 @@ export default function Analytics() {
 
                   {/* Category Details */}
                   <div className="space-y-3">
-                    {categorySpending.map((category, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors animate-slide-up"
-                        style={{ animationDelay: `${index * 100 + 500}ms` }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="p-2 rounded-lg text-xl flex items-center justify-center"
-                            style={{ backgroundColor: `${category.color}20` }}
-                          >
-                            {category.icon}
+                    {categorySpending.map((category, index) => {
+                      // Usar a cor ajustada do gráfico se disponível
+                      const adjustedCategories = adjustDuplicateColors(categorySpending)
+                      const barColor = adjustedCategories[index]?.chartColor || category.color
+
+                      return (
+                        <div
+                          key={index}
+                          className="space-y-2 p-3 rounded-lg hover:bg-accent transition-colors animate-slide-up"
+                          style={{ animationDelay: `${index * 100 + 500}ms` }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className="p-2 rounded-lg text-xl flex items-center justify-center"
+                                style={{ backgroundColor: `${category.color}20` }}
+                              >
+                                {category.icon}
+                              </div>
+                              <span className="font-medium">{category.name}</span>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-semibold">R$ {category.amount.toFixed(2)}</p>
+                              <p className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}% do total</p>
+                            </div>
                           </div>
-                          <span className="font-medium">{category.name}</span>
+                          <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
+                            <div
+                              className="h-full transition-all duration-500"
+                              style={{
+                                width: `${category.percentage}%`,
+                                backgroundColor: barColor,
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold">R$ {category.amount.toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">{category.percentage.toFixed(1)}% do total</p>
-                        </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </div>
               )}

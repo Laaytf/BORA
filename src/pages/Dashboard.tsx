@@ -38,6 +38,7 @@ export default function Dashboard() {
         name: category.name,
         amount,
         color: category.color,
+        icon: category.icon || '📁',
       }
     })
     .filter((cat) => cat.amount > 0)
@@ -231,7 +232,10 @@ export default function Dashboard() {
                   return (
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{category.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{category.icon}</span>
+                          <span className="font-medium">{category.name}</span>
+                        </div>
                         <span className="text-muted-foreground">R$ {category.amount.toFixed(2)}</span>
                       </div>
                       <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
