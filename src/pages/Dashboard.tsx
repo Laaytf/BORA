@@ -183,7 +183,7 @@ export default function Dashboard() {
                         <p className="font-medium text-sm">{transaction.description}</p>
                         <p className="text-xs text-muted-foreground">
                           {getCategoryName(transaction.category_id)} •{' '}
-                          {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                          {new Date(transaction.date + 'T12:00:00').toLocaleDateString('pt-BR')}
                         </p>
                       </div>
                     </div>

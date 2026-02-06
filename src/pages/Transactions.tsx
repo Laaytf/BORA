@@ -37,12 +37,10 @@ export default function Transactions() {
     const amount = parseFloat(newAmount)
     if (isNaN(amount) || amount <= 0) return
 
-    // Validar se a data não é futura
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const selectedDate = new Date(newDate + 'T00:00:00')
+    // Validar se a data não é futura (comparar apenas as strings YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0]
 
-    if (selectedDate > today) {
+    if (newDate > today) {
       toast({
         title: 'Data inválida',
         description: 'Não é possível criar transações com data futura.',
@@ -69,12 +67,10 @@ export default function Transactions() {
     const amount = parseFloat(newAmount)
     if (isNaN(amount) || amount <= 0) return
 
-    // Validar se a data não é futura
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const selectedDate = new Date(newDate + 'T00:00:00')
+    // Validar se a data não é futura (comparar apenas as strings YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0]
 
-    if (selectedDate > today) {
+    if (newDate > today) {
       toast({
         title: 'Data inválida',
         description: 'Não é possível editar transações com data futura.',
@@ -357,7 +353,7 @@ export default function Transactions() {
                           {getCategoryName(transaction.category_id)}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                          {new Date(transaction.date + 'T12:00:00').toLocaleDateString('pt-BR')}
                         </span>
                       </div>
                     </div>

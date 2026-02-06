@@ -46,10 +46,11 @@ export function useAnalytics() {
     }
 
     // Encontrar a data mais recente entre todas as transações
+    // Adiciona 'T12:00:00' para evitar problemas de fuso horário
     const mostRecentDate = transactions.reduce((latest, transaction) => {
-      const transactionDate = new Date(transaction.date)
+      const transactionDate = new Date(transaction.date + 'T12:00:00')
       return transactionDate > latest ? transactionDate : latest
-    }, new Date(transactions[0].date))
+    }, new Date(transactions[0].date + 'T12:00:00'))
 
     return mostRecentDate
   }, [transactions])
@@ -66,7 +67,7 @@ export function useAnalytics() {
       const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
 
       const monthTransactions = transactions.filter((t) => {
-        const tDate = new Date(t.date)
+        const tDate = new Date(t.date + 'T12:00:00')
         return tDate >= monthStart && tDate <= monthEnd
       })
 
@@ -98,12 +99,12 @@ export function useAnalytics() {
     const previousMonthEnd = new Date(baseDate.getFullYear(), baseDate.getMonth(), 0)
 
     const currentMonthTransactions = transactions.filter((t) => {
-      const tDate = new Date(t.date)
+      const tDate = new Date(t.date + 'T12:00:00')
       return tDate >= currentMonthStart && tDate <= currentMonthEnd
     })
 
     const previousMonthTransactions = transactions.filter((t) => {
-      const tDate = new Date(t.date)
+      const tDate = new Date(t.date + 'T12:00:00')
       return tDate >= previousMonthStart && tDate <= previousMonthEnd
     })
 
@@ -196,7 +197,7 @@ export function useAnalytics() {
 
     const currentMonthExpenses = transactions
       .filter((t) => {
-        const tDate = new Date(t.date)
+        const tDate = new Date(t.date + 'T12:00:00')
         return t.type === 'expense' && tDate >= currentMonthStart && tDate <= currentMonthEnd
       })
       .reduce((sum, t) => sum + t.amount, 0)
